@@ -3,8 +3,6 @@
 import { Mic, Square } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-
 type MicrophoneState = 'idle' | 'starting' | 'active' | 'error';
 type WorkletEnvelope = { endTime: number; values: Int16Array };
 
@@ -14,14 +12,16 @@ const HORIZON_SECONDS = 1.2;
 const HISTORY_FRAMES = HORIZON_SECONDS / FRAME_DURATION_SECONDS;
 const MAX_DISPLAY_COLUMNS = 144;
 const PRESENTATION_DELAY_SECONDS = 0.03;
-const fromQ15 = (value: number) => value < 0 ? value / 32768 : value / 32767;
+const fromQ15 = (value: number) => (value < 0 ? value / 32768 : value / 32767);
 
 export function LiveWaveform() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const envelopeRingRef = useRef(Array.from(
-    { length: HISTORY_FRAMES },
-    () => new Int16Array(ENVELOPE_COLUMNS * 2),
-  ));
+  const envelopeRingRef = useRef(
+    Array.from(
+      { length: HISTORY_FRAMES },
+      () => new Int16Array(ENVELOPE_COLUMNS * 2),
+    ),
+  );
   const frameEndRingRef = useRef(new Float64Array(HISTORY_FRAMES));
   const frameValidRef = useRef(new Uint8Array(HISTORY_FRAMES));
   const ringWriteIndexRef = useRef(0);
@@ -39,7 +39,8 @@ export function LiveWaveform() {
     silentGain: GainNode;
   } | null>(null);
   const reducedMotionRef = useRef(false);
-  const [microphoneState, setMicrophoneState] = useState<MicrophoneState>('idle');
+  const [microphoneState, setMicrophoneState] =
+    useState<MicrophoneState>('idle');
   const [message, setMessage] = useState('');
 
   const syncCanvasTheme = useCallback(() => {
@@ -80,7 +81,10 @@ export function LiveWaveform() {
 
     const horizontalPadding = 28;
     const drawWidth = width - horizontalPadding * 2;
-    const displayColumns = Math.min(MAX_DISPLAY_COLUMNS, Math.max(48, Math.floor(drawWidth / 5)));
+    const displayColumns = Math.min(
+      MAX_DISPLAY_COLUMNS,
+      Math.max(48, Math.floor(drawWidth / 5)),
+    );
     const horizontalStep = drawWidth / displayColumns;
     const halfHeight = Math.min(centerY - 26, height - 26 - centerY);
     const horizonStart = horizonEnd - HORIZON_SECONDS;
@@ -90,13 +94,21 @@ export function LiveWaveform() {
     for (let slot = 0; slot < HISTORY_FRAMES; slot += 1) {
       if (!frameValidRef.current[slot]) continue;
       const endTime = frameEndRingRef.current[slot];
-      if (endTime <= horizonStart || endTime - FRAME_DURATION_SECONDS >= horizonEnd) continue;
+      if (
+        endTime <= horizonStart ||
+        endTime - FRAME_DURATION_SECONDS >= horizonEnd
+      )
+        continue;
       const frameStart = endTime - FRAME_DURATION_SECONDS;
       const values = envelopeRingRef.current[slot];
 
       for (let bucket = 0; bucket < ENVELOPE_COLUMNS; bucket += 1) {
-        const bucketTime = frameStart + ((bucket + 0.5) * FRAME_DURATION_SECONDS) / ENVELOPE_COLUMNS;
-        const column = Math.floor(((bucketTime - horizonStart) / HORIZON_SECONDS) * displayColumns);
+        const bucketTime =
+          frameStart +
+          ((bucket + 0.5) * FRAME_DURATION_SECONDS) / ENVELOPE_COLUMNS;
+        const column = Math.floor(
+          ((bucketTime - horizonStart) / HORIZON_SECONDS) * displayColumns,
+        );
         if (column < 0 || column >= displayColumns) continue;
         const peak = Math.max(
           Math.abs(fromQ15(values[bucket * 2])),
@@ -112,7 +124,8 @@ export function LiveWaveform() {
     context.beginPath();
 
     for (let column = 0; column < displayColumns; column += 1) {
-      const x = horizontalPadding + horizontalStep * column + horizontalStep / 2;
+      const x =
+        horizontalPadding + horizontalStep * column + horizontalStep / 2;
       const peak = peakColumns[column];
       if (!peak) continue;
       context.moveTo(x, centerY - peak * halfHeight);
@@ -122,32 +135,36 @@ export function LiveWaveform() {
     context.stroke();
   }, []);
 
-  const releaseMicrophone = useCallback((resetInterface = true) => {
-    if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
-    animationRef.current = null;
-    frameValidRef.current.fill(0);
-    frameEndRingRef.current.fill(0);
-    ringWriteIndexRef.current = 0;
-    horizonEndRef.current = 0;
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+  const releaseMicrophone = useCallback(
+    (resetInterface = true) => {
+      if (animationRef.current !== null)
+        cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+      frameValidRef.current.fill(0);
+      frameEndRingRef.current.fill(0);
+      ringWriteIndexRef.current = 0;
+      horizonEndRef.current = 0;
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
 
-    const audio = audioRef.current;
-    if (audio) {
-      audio.processor.port.onmessage = null;
-      audio.source.disconnect();
-      audio.processor.disconnect();
-      audio.silentGain.disconnect();
-      void audio.context.close();
-      audioRef.current = null;
-    }
+      const audio = audioRef.current;
+      if (audio) {
+        audio.processor.port.onmessage = null;
+        audio.source.disconnect();
+        audio.processor.disconnect();
+        audio.silentGain.disconnect();
+        void audio.context.close();
+        audioRef.current = null;
+      }
 
-    if (resetInterface) {
-      setMicrophoneState('idle');
-      setMessage('');
-      requestAnimationFrame(paint);
-    }
-  }, [paint]);
+      if (resetInterface) {
+        setMicrophoneState('idle');
+        setMessage('');
+        requestAnimationFrame(paint);
+      }
+    },
+    [paint],
+  );
 
   const enableMicrophone = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
@@ -156,8 +173,8 @@ export function LiveWaveform() {
       return;
     }
 
-      setMicrophoneState('starting');
-      setMessage('');
+    setMicrophoneState('starting');
+    setMessage('');
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -170,7 +187,9 @@ export function LiveWaveform() {
       });
       streamRef.current = stream;
       const context = new AudioContext();
-      await context.audioWorklet.addModule('/worklets/pcm-envelope-processor.js');
+      await context.audioWorklet.addModule(
+        '/worklets/pcm-envelope-processor.js',
+      );
 
       const source = context.createMediaStreamSource(stream);
       const processor = new AudioWorkletNode(context, 'pcm-envelope');
@@ -178,14 +197,23 @@ export function LiveWaveform() {
       silentGain.gain.value = 0;
       audioRef.current = { context, source, processor, silentGain };
       processor.port.onmessage = ({ data }: MessageEvent<WorkletEnvelope>) => {
-        if (!(data?.values instanceof Int16Array) || data.values.length !== ENVELOPE_COLUMNS * 2 || !Number.isFinite(data.endTime)) return;
+        if (
+          !(data?.values instanceof Int16Array) ||
+          data.values.length !== ENVELOPE_COLUMNS * 2 ||
+          !Number.isFinite(data.endTime)
+        )
+          return;
         const slot = ringWriteIndexRef.current;
         envelopeRingRef.current[slot].set(data.values);
         frameEndRingRef.current[slot] = data.endTime;
         frameValidRef.current[slot] = 1;
-        ringWriteIndexRef.current = (ringWriteIndexRef.current + 1) % HISTORY_FRAMES;
+        ringWriteIndexRef.current =
+          (ringWriteIndexRef.current + 1) % HISTORY_FRAMES;
       };
-      source.connect(processor).connect(silentGain).connect(context.destination);
+      source
+        .connect(processor)
+        .connect(silentGain)
+        .connect(context.destination);
       await context.resume();
 
       setMicrophoneState('active');
@@ -193,9 +221,11 @@ export function LiveWaveform() {
     } catch (error) {
       releaseMicrophone(false);
       setMicrophoneState('error');
-      setMessage(error instanceof DOMException && error.name === 'NotAllowedError'
-        ? 'Microphone permission was not granted. You can try again.'
-        : 'A microphone could not be started. Check your device and try again.');
+      setMessage(
+        error instanceof DOMException && error.name === 'NotAllowedError'
+          ? 'Microphone permission was not granted. You can try again.'
+          : 'A microphone could not be started. Check your device and try again.',
+      );
       requestAnimationFrame(paint);
     }
   }, [paint, releaseMicrophone]);
@@ -229,12 +259,15 @@ export function LiveWaveform() {
     refreshCanvasTheme();
     window.addEventListener('edgewake-theme-change', refreshCanvasTheme);
 
-    return () => window.removeEventListener('edgewake-theme-change', refreshCanvasTheme);
+    return () =>
+      window.removeEventListener('edgewake-theme-change', refreshCanvasTheme);
   }, [paint, syncCanvasTheme]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updatePreference = () => { reducedMotionRef.current = mediaQuery.matches; };
+    const updatePreference = () => {
+      reducedMotionRef.current = mediaQuery.matches;
+    };
     updatePreference();
     mediaQuery.addEventListener('change', updatePreference);
     requestAnimationFrame(paint);
@@ -249,7 +282,10 @@ export function LiveWaveform() {
     if (microphoneState !== 'active') return;
 
     const drawLoop = (timestamp: number) => {
-      if (!reducedMotionRef.current || timestamp - lastReducedMotionPaintRef.current >= 250) {
+      if (
+        !reducedMotionRef.current ||
+        timestamp - lastReducedMotionPaintRef.current >= 250
+      ) {
         lastReducedMotionPaintRef.current = timestamp;
         paint();
       }
@@ -258,7 +294,8 @@ export function LiveWaveform() {
 
     animationRef.current = requestAnimationFrame(drawLoop);
     return () => {
-      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+      if (animationRef.current !== null)
+        cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     };
   }, [microphoneState, paint]);
@@ -287,22 +324,39 @@ export function LiveWaveform() {
           )}
         </p>
         <div className="edge-microphone-control">
-          <Button
+          <button
             className="edge-mic-button"
             disabled={isStarting}
             onClick={isActive ? () => releaseMicrophone() : enableMicrophone}
-            size="sm"
-            variant="outline"
+            type="button"
           >
-            {isActive ? <Square data-icon="inline-start" strokeWidth={1.6} /> : <Mic data-icon="inline-start" strokeWidth={1.6} />}
-            {isStarting ? 'Requesting access' : isActive ? 'Stop microphone' : microphoneState === 'error' ? 'Retry microphone' : 'Enable microphone'}
-          </Button>
+            {isActive ? (
+              <Square strokeWidth={1.6} />
+            ) : (
+              <Mic strokeWidth={1.6} />
+            )}
+            {isStarting
+              ? 'Requesting access'
+              : isActive
+                ? 'Stop microphone'
+                : microphoneState === 'error'
+                  ? 'Retry microphone'
+                  : 'Enable microphone'}
+          </button>
         </div>
-        {message && <span aria-live="polite" className="edge-mic-message">{message}</span>}
+        {message && (
+          <span aria-live="polite" className="edge-mic-message">
+            {message}
+          </span>
+        )}
       </div>
 
       <div className="edge-waveform">
-        <canvas aria-hidden="true" className="edge-wave-canvas" ref={canvasRef} />
+        <canvas
+          aria-hidden="true"
+          className="edge-wave-canvas"
+          ref={canvasRef}
+        />
       </div>
     </div>
   );

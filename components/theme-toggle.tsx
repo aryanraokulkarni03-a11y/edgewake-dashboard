@@ -3,8 +3,6 @@
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-
 type Theme = 'light' | 'dark';
 
 const applyTheme = (theme: Theme) => {
@@ -18,9 +16,12 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('edgewake-theme');
-    const initialTheme: Theme = savedTheme === 'dark' || savedTheme === 'light'
-      ? savedTheme
-      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const initialTheme: Theme =
+      savedTheme === 'dark' || savedTheme === 'light'
+        ? savedTheme
+        : window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
     applyTheme(initialTheme);
     const animation = requestAnimationFrame(() => setTheme(initialTheme));
 
@@ -31,7 +32,7 @@ export function ThemeToggle() {
   const nextTheme: Theme = isDark ? 'light' : 'dark';
 
   return (
-    <Button
+    <button
       aria-label={`Switch to ${nextTheme} mode`}
       aria-pressed={isDark}
       className="edge-theme-toggle"
@@ -39,11 +40,10 @@ export function ThemeToggle() {
         setTheme(nextTheme);
         applyTheme(nextTheme);
       }}
-      size="icon-sm"
       title={`Switch to ${nextTheme} mode`}
-      variant="ghost"
+      type="button"
     >
       {isDark ? <Sun strokeWidth={1.65} /> : <Moon strokeWidth={1.65} />}
-    </Button>
+    </button>
   );
 }

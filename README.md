@@ -19,6 +19,22 @@ npm run dev
 
 Open the local address printed by the dev server. Browser microphone access is available on `localhost` or HTTPS only.
 
+## Vercel deployment
+
+Import this repository with the **Other** preset and root directory `./`.
+`vercel.json` sets installation to `npm ci`, the build to `npm run build`,
+and the public output to `dist/client`. No application environment variables are needed.
+
+Vercel's automatic `VERCEL=1` environment flag enables the static export and
+skips the Cloudflare Worker plugin. Only the exported HTML, styles, scripts,
+fonts, and audio worklet are published; microphone processing runs in the browser.
+Local development and the existing managed-hosting build keep their current configuration.
+
+Local export verification generated the HTML and assets successfully, but the
+Windows build process reported a `UV_HANDLE_CLOSING` assertion at shutdown.
+Lint and exported-asset checks passed. The first Vercel build must still complete
+successfully before the deployment is considered verified.
+
 ## Checks
 
 ```bash

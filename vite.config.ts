@@ -34,6 +34,11 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async () => {
+  // Vercel serves the exported V1 frontend without a Cloudflare Worker.
+  if (process.env.VERCEL === '1') {
+    return { plugins: [vinext()] };
+  }
+
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= 'false';

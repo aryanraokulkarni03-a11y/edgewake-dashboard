@@ -11,7 +11,7 @@ type WaveBar = { level: number; x: number };
 const BAR_WIDTH = 3;
 const BAR_GAP = 2;
 const BAR_STEP = BAR_WIDTH + BAR_GAP;
-const BAR_SPEED = 48;
+const BAR_SPEED = 96;
 const EDGE_FADE_WIDTH = 28;
 const MINIMUM_LEVEL = 0.035;
 const fromQ15 = (value: number) => (value < 0 ? value / 32768 : value / 32767);
@@ -50,10 +50,7 @@ export function LiveWaveform() {
     const { width, height, pixelRatio } = canvasMetricsRef.current;
     if (!width || !height) return;
 
-    const context =
-      canvasContextRef.current ??
-      canvas.getContext('2d', { desynchronized: true }) ??
-      canvas.getContext('2d');
+    const context = canvasContextRef.current ?? canvas.getContext('2d');
     if (!context) return;
     canvasContextRef.current = context;
 
@@ -68,7 +65,7 @@ export function LiveWaveform() {
     lastPaintRef.current = timestamp;
 
     const responseRate =
-      targetLevelRef.current > displayedLevelRef.current ? 24 : 8;
+      targetLevelRef.current > displayedLevelRef.current ? 42 : 14;
     const smoothing = 1 - Math.exp(-responseRate * deltaSeconds);
     displayedLevelRef.current +=
       (targetLevelRef.current - displayedLevelRef.current) * smoothing;

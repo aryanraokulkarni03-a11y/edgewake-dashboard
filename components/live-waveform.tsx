@@ -6,31 +6,25 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 type MicrophoneState = 'idle' | 'starting' | 'active' | 'error';
 type WorkletEnvelope = { endTime: number; values: Int16Array };
+type WaveBar = { level: number; x: number };
 
-const ENVELOPE_COLUMNS = 32;
-const FRAME_DURATION_SECONDS = 1 / 120;
-const HORIZON_SECONDS = 1.2;
-const HISTORY_FRAMES = HORIZON_SECONDS / FRAME_DURATION_SECONDS;
-const MAX_DISPLAY_COLUMNS = 144;
-const PRESENTATION_DELAY_SECONDS = 2 / 120;
+const BAR_WIDTH = 3;
+const BAR_GAP = 2;
+const BAR_STEP = BAR_WIDTH + BAR_GAP;
+const BAR_SPEED = 48;
+const EDGE_FADE_WIDTH = 28;
+const MINIMUM_LEVEL = 0.035;
 const fromQ15 = (value: number) => (value < 0 ? value / 32768 : value / 32767);
 
 export function LiveWaveform() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const envelopeRingRef = useRef(
-    Array.from(
-      { length: HISTORY_FRAMES },
-      () => new Int16Array(ENVELOPE_COLUMNS * 2),
-    ),
-  );
-  const frameEndRingRef = useRef(new Float64Array(HISTORY_FRAMES));
-  const frameValidRef = useRef(new Uint8Array(HISTORY_FRAMES));
-  const ringWriteIndexRef = useRef(0);
-  const peakColumnsRef = useRef(new Float32Array(MAX_DISPLAY_COLUMNS));
+  const barsRef = useRef<WaveBar[]>([]);
+  const targetLevelRef = useRef(0);
+  const displayedLevelRef = useRef(0);
+  const lastPaintRef = useRef(0);
   const canvasMetricsRef = useRef({ width: 0, height: 0, pixelRatio: 1 });
-  const canvasColorsRef = useRef({ line: '#e1e4e6', waveform: '#4f63d8' });
+  const canvasColorRef = useRef('#4f63d8');
   const canvasContextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const horizonEndRef = useRef(0);
   const animationRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<{
@@ -45,13 +39,11 @@ export function LiveWaveform() {
 
   const syncCanvasTheme = useCallback(() => {
     const styles = getComputedStyle(document.documentElement);
-    canvasColorsRef.current = {
-      line: styles.getPropertyValue('--wave-line').trim() || '#e1e4e6',
-      waveform: styles.getPropertyValue('--wave-accent').trim() || '#4f63d8',
-    };
+    canvasColorRef.current =
+      styles.getPropertyValue('--wave-accent').trim() || '#4f63d8';
   }, []);
 
-  const paint = useCallback(() => {
+  const paint = useCallback((timestamp = performance.now()) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -67,76 +59,69 @@ export function LiveWaveform() {
 
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     context.clearRect(0, 0, width, height);
-    context.strokeStyle = canvasColorsRef.current.line;
-    context.lineWidth = 1;
-    context.beginPath();
-    const centerY = Math.floor(height / 2) + 0.5;
-    context.moveTo(0, centerY);
-    context.lineTo(width, centerY);
-    context.stroke();
+    if (!audioRef.current) return;
 
-    const rawHorizonEnd = Math.max(
-      0,
-      (audioRef.current?.context.currentTime ?? 0) - PRESENTATION_DELAY_SECONDS,
+    const deltaSeconds = Math.min(
+      0.05,
+      lastPaintRef.current ? (timestamp - lastPaintRef.current) / 1000 : 0,
     );
-    const horizonEnd = Math.max(horizonEndRef.current, rawHorizonEnd);
-    horizonEndRef.current = horizonEnd;
-    if (!horizonEnd) return;
+    lastPaintRef.current = timestamp;
 
-    const horizontalPadding = 28;
-    const drawWidth = width - horizontalPadding * 2;
-    const displayColumns = Math.min(
-      MAX_DISPLAY_COLUMNS,
-      Math.max(48, Math.floor(drawWidth / 5)),
-    );
-    const horizontalStep = drawWidth / displayColumns;
-    const halfHeight = Math.min(centerY - 26, height - 26 - centerY);
-    const horizonStart = horizonEnd - HORIZON_SECONDS;
-    const peakColumns = peakColumnsRef.current;
-    peakColumns.fill(0, 0, displayColumns);
+    const responseRate =
+      targetLevelRef.current > displayedLevelRef.current ? 24 : 8;
+    const smoothing = 1 - Math.exp(-responseRate * deltaSeconds);
+    displayedLevelRef.current +=
+      (targetLevelRef.current - displayedLevelRef.current) * smoothing;
 
-    for (let slot = 0; slot < HISTORY_FRAMES; slot += 1) {
-      if (!frameValidRef.current[slot]) continue;
-      const endTime = frameEndRingRef.current[slot];
-      if (
-        endTime <= horizonStart ||
-        endTime - FRAME_DURATION_SECONDS >= horizonEnd
-      )
-        continue;
-      const frameStart = endTime - FRAME_DURATION_SECONDS;
-      const values = envelopeRingRef.current[slot];
-
-      for (let bucket = 0; bucket < ENVELOPE_COLUMNS; bucket += 1) {
-        const bucketTime =
-          frameStart +
-          ((bucket + 0.5) * FRAME_DURATION_SECONDS) / ENVELOPE_COLUMNS;
-        const column = Math.floor(
-          ((bucketTime - horizonStart) / HORIZON_SECONDS) * displayColumns,
-        );
-        if (column < 0 || column >= displayColumns) continue;
-        const peak = Math.max(
-          Math.abs(fromQ15(values[bucket * 2])),
-          Math.abs(fromQ15(values[bucket * 2 + 1])),
-        );
-        peakColumns[column] = Math.max(peakColumns[column], peak);
+    if (!barsRef.current.length) {
+      for (let x = -BAR_STEP; x < width + BAR_STEP; x += BAR_STEP) {
+        barsRef.current.push({ level: MINIMUM_LEVEL, x });
       }
     }
 
-    context.strokeStyle = canvasColorsRef.current.waveform;
-    context.lineWidth = 2;
-    context.lineCap = 'round';
-    context.beginPath();
+    for (const bar of barsRef.current) bar.x -= BAR_SPEED * deltaSeconds;
+    barsRef.current = barsRef.current.filter(
+      (bar) => bar.x + BAR_WIDTH > -BAR_STEP,
+    );
 
-    for (let column = 0; column < displayColumns; column += 1) {
-      const x =
-        horizontalPadding + horizontalStep * column + horizontalStep / 2;
-      const peak = peakColumns[column];
-      if (!peak) continue;
-      context.moveTo(x, centerY - peak * halfHeight);
-      context.lineTo(x, centerY + peak * halfHeight);
+    while (
+      !barsRef.current.length ||
+      barsRef.current[barsRef.current.length - 1].x < width
+    ) {
+      const lastBar = barsRef.current[barsRef.current.length - 1];
+      barsRef.current.push({
+        level: Math.max(MINIMUM_LEVEL, displayedLevelRef.current),
+        x: lastBar ? lastBar.x + BAR_STEP : width,
+      });
     }
 
-    context.stroke();
+    context.fillStyle = canvasColorRef.current;
+    for (const bar of barsRef.current) {
+      if (bar.x >= width || bar.x + BAR_WIDTH <= 0) continue;
+      const barHeight = Math.max(3, bar.level * height * 0.54);
+      context.globalAlpha = 0.28 + bar.level * 0.72;
+      context.beginPath();
+      context.roundRect(
+        bar.x,
+        (height - barHeight) / 2,
+        BAR_WIDTH,
+        barHeight,
+        2,
+      );
+      context.fill();
+    }
+
+    const fadeWidth = Math.min(EDGE_FADE_WIDTH, width * 0.16);
+    const edgeFade = context.createLinearGradient(0, 0, width, 0);
+    edgeFade.addColorStop(0, 'rgb(0 0 0)');
+    edgeFade.addColorStop(fadeWidth / width, 'rgb(0 0 0 / 0)');
+    edgeFade.addColorStop(1 - fadeWidth / width, 'rgb(0 0 0 / 0)');
+    edgeFade.addColorStop(1, 'rgb(0 0 0)');
+    context.globalCompositeOperation = 'destination-out';
+    context.fillStyle = edgeFade;
+    context.fillRect(0, 0, width, height);
+    context.globalCompositeOperation = 'source-over';
+    context.globalAlpha = 1;
   }, []);
 
   const releaseMicrophone = useCallback(
@@ -144,10 +129,10 @@ export function LiveWaveform() {
       if (animationRef.current !== null)
         cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
-      frameValidRef.current.fill(0);
-      frameEndRingRef.current.fill(0);
-      ringWriteIndexRef.current = 0;
-      horizonEndRef.current = 0;
+      barsRef.current = [];
+      targetLevelRef.current = 0;
+      displayedLevelRef.current = 0;
+      lastPaintRef.current = 0;
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
 
@@ -203,16 +188,14 @@ export function LiveWaveform() {
       processor.port.onmessage = ({ data }: MessageEvent<WorkletEnvelope>) => {
         if (
           !(data?.values instanceof Int16Array) ||
-          data.values.length !== ENVELOPE_COLUMNS * 2 ||
           !Number.isFinite(data.endTime)
         )
           return;
-        const slot = ringWriteIndexRef.current;
-        envelopeRingRef.current[slot].set(data.values);
-        frameEndRingRef.current[slot] = data.endTime;
-        frameValidRef.current[slot] = 1;
-        ringWriteIndexRef.current =
-          (ringWriteIndexRef.current + 1) % HISTORY_FRAMES;
+
+        let peak = 0;
+        for (const value of data.values)
+          peak = Math.max(peak, Math.abs(fromQ15(value)));
+        targetLevelRef.current = Math.min(1, Math.pow(peak, 0.62) * 1.7);
       };
       source
         .connect(processor)
@@ -246,6 +229,7 @@ export function LiveWaveform() {
       canvasMetricsRef.current = { width, height, pixelRatio };
       canvas.width = width * pixelRatio;
       canvas.height = height * pixelRatio;
+      barsRef.current = [];
       paint();
     };
     const observer = new ResizeObserver(resizeCanvas);
@@ -276,8 +260,8 @@ export function LiveWaveform() {
   useEffect(() => {
     if (microphoneState !== 'active') return;
 
-    const drawLoop = () => {
-      paint();
+    const drawLoop = (timestamp: number) => {
+      paint(timestamp);
       animationRef.current = requestAnimationFrame(drawLoop);
     };
 

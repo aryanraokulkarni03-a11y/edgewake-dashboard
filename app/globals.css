@@ -232,20 +232,13 @@ body {
   gap: 5px;
   height: 1em;
 }
-.edge-listening-dots i {
+.edge-listening-dot {
+  display: block;
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: var(--accent);
-  animation: edge-listening-dot 840ms cubic-bezier(0.45, 0, 0.55, 1) infinite
-    both;
   will-change: opacity, transform;
-}
-.edge-listening-dots i:nth-child(2) {
-  animation-delay: -140ms;
-}
-.edge-listening-dots i:nth-child(3) {
-  animation-delay: -280ms;
 }
 
 .edge-microphone-control {
@@ -306,19 +299,6 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-@keyframes edge-listening-dot {
-  0%,
-  58%,
-  100% {
-    opacity: 0.2;
-    transform: translateY(3px) scale(0.72);
-  }
-  25% {
-    opacity: 1;
-    transform: translateY(-2px) scale(1);
-  }
 }
 
 .edge-principles {
@@ -383,13 +363,5 @@ body {
     border-top: 1px solid var(--line);
     border-left: 0;
     padding-left: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .edge-listening-dots i {
-    animation: none;
-    opacity: 0.9;
-    transform: none;
   }
 }

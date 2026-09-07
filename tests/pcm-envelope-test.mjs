@@ -15,23 +15,23 @@ globalThis.registerProcessor = (name, processor) => {
   Processor = processor;
 };
 
-await import(new URL('../public/worklets/pcm-envelope-processor.js', import.meta.url));
+await import(
+  new URL('../public/worklets/pcm-envelope-processor.js', import.meta.url)
+);
 
 const processor = new Processor();
-const alternatingFrame = (length) => Float32Array.from(
-  { length },
-  (_, sample) => sample % 2 ? 0.5 : -0.5,
-);
-processor.process([[alternatingFrame(479)]]);
+const alternatingFrame = (length) =>
+  Float32Array.from({ length }, (_, sample) => (sample % 2 ? 0.5 : -0.5));
+processor.process([[alternatingFrame(399)]]);
 assert.equal(messages.length, 0);
-globalThis.currentFrame = 479;
+globalThis.currentFrame = 399;
 processor.process([[alternatingFrame(1)]]);
-globalThis.currentFrame = 480;
-processor.process([[alternatingFrame(480)]]);
+globalThis.currentFrame = 400;
+processor.process([[alternatingFrame(400)]]);
 
 assert.equal(messages.length, 2);
-assert.equal(messages[0].endTime, 0.01);
-assert.equal(messages[1].endTime, 0.02);
+assert.equal(messages[0].endTime, 1 / 120);
+assert.equal(messages[1].endTime, 1 / 60);
 for (const message of messages) {
   assert.equal(message.values.length, 64);
   for (let index = 0; index < message.values.length; index += 2) {

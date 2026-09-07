@@ -1,17 +1,18 @@
 'use client';
 
 import { Mic, Square } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type MicrophoneState = 'idle' | 'starting' | 'active' | 'error';
 type WorkletEnvelope = { endTime: number; values: Int16Array };
 
 const ENVELOPE_COLUMNS = 32;
-const FRAME_DURATION_SECONDS = 0.01;
+const FRAME_DURATION_SECONDS = 1 / 120;
 const HORIZON_SECONDS = 1.2;
 const HISTORY_FRAMES = HORIZON_SECONDS / FRAME_DURATION_SECONDS;
 const MAX_DISPLAY_COLUMNS = 144;
-const PRESENTATION_DELAY_SECONDS = 0.03;
+const PRESENTATION_DELAY_SECONDS = 2 / 120;
 const fromQ15 = (value: number) => (value < 0 ? value / 32768 : value / 32767);
 
 export function LiveWaveform() {
@@ -28,9 +29,9 @@ export function LiveWaveform() {
   const peakColumnsRef = useRef(new Float32Array(MAX_DISPLAY_COLUMNS));
   const canvasMetricsRef = useRef({ width: 0, height: 0, pixelRatio: 1 });
   const canvasColorsRef = useRef({ line: '#e1e4e6', waveform: '#4f63d8' });
+  const canvasContextRef = useRef<CanvasRenderingContext2D | null>(null);
   const horizonEndRef = useRef(0);
   const animationRef = useRef<number | null>(null);
-  const lastReducedMotionPaintRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<{
     context: AudioContext;
@@ -38,7 +39,6 @@ export function LiveWaveform() {
     processor: AudioWorkletNode;
     silentGain: GainNode;
   } | null>(null);
-  const reducedMotionRef = useRef(false);
   const [microphoneState, setMicrophoneState] =
     useState<MicrophoneState>('idle');
   const [message, setMessage] = useState('');
@@ -58,8 +58,12 @@ export function LiveWaveform() {
     const { width, height, pixelRatio } = canvasMetricsRef.current;
     if (!width || !height) return;
 
-    const context = canvas.getContext('2d');
+    const context =
+      canvasContextRef.current ??
+      canvas.getContext('2d', { desynchronized: true }) ??
+      canvas.getContext('2d');
     if (!context) return;
+    canvasContextRef.current = context;
 
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     context.clearRect(0, 0, width, height);
@@ -264,31 +268,16 @@ export function LiveWaveform() {
   }, [paint, syncCanvasTheme]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updatePreference = () => {
-      reducedMotionRef.current = mediaQuery.matches;
-    };
-    updatePreference();
-    mediaQuery.addEventListener('change', updatePreference);
     requestAnimationFrame(paint);
 
-    return () => {
-      mediaQuery.removeEventListener('change', updatePreference);
-      releaseMicrophone(false);
-    };
+    return () => releaseMicrophone(false);
   }, [paint, releaseMicrophone]);
 
   useEffect(() => {
     if (microphoneState !== 'active') return;
 
-    const drawLoop = (timestamp: number) => {
-      if (
-        !reducedMotionRef.current ||
-        timestamp - lastReducedMotionPaintRef.current >= 250
-      ) {
-        lastReducedMotionPaintRef.current = timestamp;
-        paint();
-      }
+    const drawLoop = () => {
+      paint();
       animationRef.current = requestAnimationFrame(drawLoop);
     };
 
@@ -317,9 +306,23 @@ export function LiveWaveform() {
           {stateLabel}
           {isActive && (
             <span aria-hidden="true" className="edge-listening-dots">
-              <i />
-              <i />
-              <i />
+              {[0, 0.14, 0.28].map((delay) => (
+                <motion.span
+                  animate={{
+                    opacity: [0.2, 1, 0.2],
+                    scale: [0.72, 1, 0.72],
+                    y: [3, -2, 3],
+                  }}
+                  className="edge-listening-dot"
+                  key={delay}
+                  transition={{
+                    delay,
+                    duration: 0.84,
+                    ease: [0.45, 0, 0.55, 1],
+                    repeat: Infinity,
+                  }}
+                />
+              ))}
             </span>
           )}
         </p>

@@ -1,4 +1,4 @@
-const FRAME_DURATION_SECONDS = 0.01;
+const FRAME_DURATION_SECONDS = 1 / 120;
 const COLUMNS = 32;
 const toQ15 = (value) => Math.round(value * (value < 0 ? 32768 : 32767));
 
@@ -13,8 +13,10 @@ class PcmEnvelopeProcessor extends AudioWorkletProcessor {
   }
 
   getFrameSize() {
-    return Math.round((this.frameNumber + 1) * this.samplesPerFrame)
-      - Math.round(this.frameNumber * this.samplesPerFrame);
+    return (
+      Math.round((this.frameNumber + 1) * this.samplesPerFrame) -
+      Math.round(this.frameNumber * this.samplesPerFrame)
+    );
   }
 
   process(inputs) {
@@ -43,10 +45,13 @@ class PcmEnvelopeProcessor extends AudioWorkletProcessor {
           envelope[column * 2 + 1] = toQ15(maximum);
         }
 
-        this.port.postMessage({
-          endTime: (currentFrame + index + 1) / sampleRate,
-          values: envelope,
-        }, [envelope.buffer]);
+        this.port.postMessage(
+          {
+            endTime: (currentFrame + index + 1) / sampleRate,
+            values: envelope,
+          },
+          [envelope.buffer],
+        );
         this.frameNumber += 1;
         this.frameSize = this.getFrameSize();
         this.offset = 0;

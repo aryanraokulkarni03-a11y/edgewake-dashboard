@@ -185,11 +185,11 @@ body {
 .edge-card-head {
   min-height: 60px;
   border-bottom: 1px solid var(--line);
-  padding: 12px 22px;
+  padding: 12px 32px;
 }
 .edge-card-head h2 {
   margin: 0;
-  color: var(--ink);
+  color: var(--ink-secondary);
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 600;

@@ -1,6 +1,6 @@
 import { LockKeyhole, Radio, ShieldCheck } from 'lucide-react';
 
-import { LiveWaveform } from '@/components/live-waveform';
+import { Esp32SerialMonitor } from '@/components/esp32-serial-monitor';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Home() {
@@ -12,9 +12,9 @@ export default function Home() {
           <span className="edge-team-name">Team Luna</span>
         </div>
         <div className="edge-utility">
-          <span>V1</span>
+          <span>V2</span>
           <i />
-          <span className="edge-preview-label">Local preview</span>
+          <span className="edge-preview-label">USB monitor</span>
           <ThemeToggle />
         </div>
       </header>
@@ -23,7 +23,7 @@ export default function Home() {
         <section className="edge-intro" aria-labelledby="page-title">
           <div>
             <h1 id="page-title">Command Centre</h1>
-            <p className="edge-page-description">Local wake-word detection with post-trigger transcription.</p>
+            <p className="edge-page-description">Live microphone telemetry from ESP32.</p>
           </div>
         </section>
 
@@ -32,13 +32,13 @@ export default function Home() {
             <h2 id="listener-title">Local input monitor</h2>
           </div>
 
-          <LiveWaveform />
+          <Esp32SerialMonitor />
         </section>
 
         <footer className="edge-principles">
-          <span><Radio strokeWidth={1.5} /> On-device wake detection</span>
-          <span><LockKeyhole strokeWidth={1.5} /> Audio stays local until triggered</span>
-          <span><ShieldCheck strokeWidth={1.5} /> Designed for edge devices</span>
+          <span><Radio strokeWidth={1.5} /> On-device audio capture</span>
+          <span><LockKeyhole strokeWidth={1.5} /> Audio remains local</span>
+          <span><ShieldCheck strokeWidth={1.5} /> Live USB telemetry</span>
         </footer>
       </div>
     </main>

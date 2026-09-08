@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { dashboardSocketUrl } from '@/lib/edgewake-dashboard';
+
 type EventMessage = {
   device?: string;
   durationMs?: number;
@@ -10,9 +12,6 @@ type EventMessage = {
 };
 
 type ConnectionState = 'connecting' | 'connected' | 'offline';
-
-const socketUrl =
-  process.env.NEXT_PUBLIC_EDGEWAKE_WS_URL ?? 'ws://127.0.0.1:8770/dashboard';
 
 export function LiveCommandStatus() {
   const [connection, setConnection] = useState<ConnectionState>('connecting');
@@ -26,7 +25,7 @@ export function LiveCommandStatus() {
     const connect = () => {
       if (stopped) return;
       setConnection('connecting');
-      socket = new WebSocket(socketUrl);
+      socket = new WebSocket(dashboardSocketUrl);
       socket.onopen = () => setConnection('connected');
       socket.onmessage = (message) => {
         try {

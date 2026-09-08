@@ -309,6 +309,152 @@ body {
   height: 100%;
 }
 
+.edge-wifi-layout {
+  display: grid;
+  min-height: 214px;
+  grid-template-columns: minmax(244px, 0.85fr) minmax(400px, 1.15fr);
+}
+.edge-wifi-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid var(--line);
+  padding: 30px 32px;
+}
+.edge-wifi-eyebrow {
+  color: var(--ink-tertiary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 14px;
+}
+.edge-wifi-state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.48px;
+  line-height: 26px;
+}
+.edge-device-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ink-tertiary);
+}
+.edge-device-searching { background: var(--accent); }
+.edge-device-online { background: #3caa72; }
+.edge-device-streaming {
+  background: var(--accent);
+  animation: edge-device-pulse 0.85s ease-in-out infinite;
+}
+.edge-device-offline { background: #c56b5b; }
+.edge-wifi-detail {
+  max-width: 290px;
+  margin: 8px 0 0;
+  color: var(--ink-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+.edge-wifi-network-hint {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin-top: 17px;
+  color: var(--ink-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+.edge-wifi-network-hint svg {
+  width: 14px;
+  height: 14px;
+}
+.edge-wifi-topology {
+  display: flex;
+  min-height: 214px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, var(--accent-soft), transparent 51%),
+    var(--surface-soft);
+}
+.edge-network-node {
+  display: grid;
+  width: 128px;
+  min-height: 104px;
+  align-content: center;
+  justify-items: center;
+  gap: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--ink-secondary);
+  text-align: center;
+}
+.edge-network-node svg {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+.edge-network-node span {
+  color: var(--ink-tertiary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 12px;
+}
+.edge-network-node strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.1px;
+  line-height: 16px;
+}
+.edge-network-node-hub {
+  width: 118px;
+}
+.edge-wifi-link {
+  position: relative;
+  width: 42px;
+  height: 1px;
+  background: var(--line-strong);
+}
+.edge-wifi-link svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  color: var(--ink-tertiary);
+}
+.edge-wifi-streaming .edge-wifi-link::after {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  content: '';
+  animation: edge-wifi-travel 0.7s linear infinite;
+}
+@keyframes edge-device-pulse {
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+@keyframes edge-wifi-travel {
+  to { transform: translateX(37px); }
+}
+
 .edge-principles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -405,7 +551,16 @@ body {
   .edge-voice-layout {
     grid-template-columns: 1fr;
   }
+  .edge-wifi-layout {
+    grid-template-columns: 1fr;
+  }
   .edge-voice-copy {
+    min-height: 158px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 28px 24px;
+  }
+  .edge-wifi-copy {
     min-height: 158px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
@@ -413,6 +568,9 @@ body {
   }
   .edge-waveform {
     min-height: 190px;
+  }
+  .edge-wifi-topology {
+    min-height: 164px;
   }
   .edge-principles {
     grid-template-columns: 1fr;

@@ -1,8 +1,8 @@
 import { LockKeyhole, Radio, ShieldCheck } from 'lucide-react';
 
-import { Esp32SerialMonitor } from '@/components/esp32-serial-monitor';
 import { LiveCommandStatus } from '@/components/live-command-status';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { WifiDeviceMonitor } from '@/components/wifi-device-monitor';
 
 export default function Home() {
   return (
@@ -32,10 +32,10 @@ export default function Home() {
 
         <section className="edge-listener" aria-labelledby="listener-title">
           <div className="edge-card-head">
-            <h2 id="listener-title">Local input monitor</h2>
+            <h2 id="listener-title">EdgeWake device</h2>
           </div>
 
-          <Esp32SerialMonitor />
+          <WifiDeviceMonitor />
         </section>
 
         <LiveCommandStatus />

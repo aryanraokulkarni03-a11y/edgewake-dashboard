@@ -1,6 +1,7 @@
 import { LockKeyhole, Radio, ShieldCheck } from 'lucide-react';
 
 import { Esp32SerialMonitor } from '@/components/esp32-serial-monitor';
+import { LiveCommandStatus } from '@/components/live-command-status';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Home() {
@@ -14,7 +15,7 @@ export default function Home() {
         <div className="edge-utility">
           <span>V2</span>
           <i />
-          <span className="edge-preview-label">USB monitor</span>
+          <span className="edge-preview-label">Live WebSocket</span>
           <ThemeToggle />
         </div>
       </header>
@@ -23,7 +24,7 @@ export default function Home() {
         <section className="edge-intro" aria-labelledby="page-title">
           <div>
             <h1 id="page-title">Command Centre</h1>
-            <p className="edge-page-description">Live microphone telemetry from ESP32.</p>
+            <p className="edge-page-description">Live device status and speech transcription.</p>
           </div>
         </section>
 
@@ -35,10 +36,12 @@ export default function Home() {
           <Esp32SerialMonitor />
         </section>
 
+        <LiveCommandStatus />
+
         <footer className="edge-principles">
-          <span><Radio strokeWidth={1.5} /> On-device audio capture</span>
-          <span><LockKeyhole strokeWidth={1.5} /> Audio remains local</span>
-          <span><ShieldCheck strokeWidth={1.5} /> Live USB telemetry</span>
+          <span><Radio strokeWidth={1.5} /> Wake word runs on device</span>
+          <span><LockKeyhole strokeWidth={1.5} /> Only triggered audio is sent</span>
+          <span><ShieldCheck strokeWidth={1.5} /> Live WebSocket telemetry</span>
         </footer>
       </div>
     </main>

@@ -7,6 +7,7 @@ V1 command centre for EdgeWake — Team Luna's low-latency voice activator for e
 - Judge-facing command centre UI
 - Browser microphone waveform preview
 - Light and dark themes
+- Optional live status and transcript events from the local Python server
 
 V1 does **not** connect to an ESP32, run keyword spotting, send audio to a backend, or display remote transcripts.
 
@@ -52,6 +53,16 @@ public/fonts/            Inter Tight typeface used by the UI
 public/worklets/         AudioWorklet for PCM envelope capture
 tests/                   Lightweight waveform unit check
 ```
+
+## Live server connection
+
+Start the Python server from `esp32-kws-streamer/server`, then run the dashboard
+locally. The Command Centre subscribes to `ws://127.0.0.1:8770/dashboard` by
+default. To use another endpoint, set `NEXT_PUBLIC_EDGEWAKE_WS_URL` before the
+dashboard build.
+
+The device audio remains on the server-to-ASR path; the browser receives only
+status and transcript events, never the Deepgram API key or raw PCM audio.
 
 ## Next stage
 

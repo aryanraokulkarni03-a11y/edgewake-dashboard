@@ -308,6 +308,57 @@ body {
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
+
+.edge-live-status {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  padding: 14px 18px;
+}
+.edge-live-status-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+.edge-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-tertiary);
+}
+.edge-status-connected { background: #3caa72; }
+.edge-status-connecting { background: var(--accent); }
+.edge-live-status-route {
+  margin-left: auto;
+  color: var(--ink-tertiary);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+}
+.edge-transcript {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 13px;
+}
+.edge-transcript-label,
+.edge-transcript-meta {
+  color: var(--ink-tertiary);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.edge-transcript p {
+  margin: 4px 0 2px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.35px;
+  line-height: 25px;
+}
 .edge-principles span {
   display: flex;
   min-height: 60px;

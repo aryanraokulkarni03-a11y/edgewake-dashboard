@@ -11,6 +11,7 @@ import {
 
 type DashboardEvent = {
   device?: string;
+  devices?: string[];
   type: string;
 };
 

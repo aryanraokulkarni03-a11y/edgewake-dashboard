@@ -6,6 +6,7 @@ export type DeviceHubState = {
 
 type DeviceHubEvent = {
   device?: string;
+  devices?: string[];
   type: string;
 };
 
@@ -28,6 +29,8 @@ export function reduceDeviceHubState(
       return { connection: 'offline', device: null, streaming: false };
     case 'device_connected':
       return { ...state, device: event.device ?? 'EdgeWake-01', streaming: false };
+    case 'devices_snapshot':
+      return { ...state, device: event.devices?.[0] ?? null, streaming: false };
     case 'device_disconnected':
       return event.device === state.device
         ? { ...state, device: null, streaming: false }

@@ -8,6 +8,12 @@ import {
 let state = reduceDeviceHubState(initialDeviceHubState, { type: 'hub_connected' });
 assert.equal(state.connection, 'connected');
 
+state = reduceDeviceHubState(state, {
+  devices: ['10.2.40.41:49152'],
+  type: 'devices_snapshot',
+});
+assert.equal(state.device, '10.2.40.41:49152');
+
 state = reduceDeviceHubState(state, { device: '10.2.40.41:49152', type: 'device_connected' });
 assert.equal(state.device, '10.2.40.41:49152');
 

@@ -343,15 +343,8 @@ body {
   border-top: 1px solid var(--line);
   padding-top: 13px;
 }
-.edge-transcript-label,
-.edge-transcript-meta {
-  color: var(--ink-tertiary);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
 .edge-transcript p {
-  margin: 4px 0 2px;
+  margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 20px;

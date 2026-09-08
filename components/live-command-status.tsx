@@ -66,25 +66,9 @@ export function LiveCommandStatus() {
         <span className="edge-live-status-route">/dashboard</span>
       </div>
       <div className="edge-transcript">
-        <span className="edge-transcript-label">
-          {event?.type === 'partial'
-            ? 'Hearing'
-            : event
-              ? 'Latest command'
-              : 'Live transcription'}
-        </span>
         <p className={event ? undefined : 'edge-transcript-empty'}>
           {event?.text || 'Waiting for a spoken command.'}
         </p>
-        {event?.type === 'final' && event.durationMs ? (
-          <span className="edge-transcript-meta">
-            {event.device ?? 'ESP32'} · {(event.durationMs / 1000).toFixed(1)} s
-          </span>
-        ) : (
-          <span className="edge-transcript-meta">
-            Connect the ESP32 or replay a speech WAV to begin.
-          </span>
-        )}
       </div>
     </section>
   );

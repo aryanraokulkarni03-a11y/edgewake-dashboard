@@ -87,7 +87,7 @@ body {
 }
 .edge-identity {
   align-items: baseline;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -97,19 +97,16 @@ body {
   letter-spacing: -0.04em;
   line-height: 24px;
 }
-.edge-team-name {
+.edge-attribution {
   color: var(--ink-secondary);
   font-size: 16px;
-  font-style: italic;
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 24px;
 }
-.edge-by {
-  color: var(--ink-secondary);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+
+.edge-attribution em {
+  font-style: italic;
 }
 .edge-utility {
   gap: 8px;

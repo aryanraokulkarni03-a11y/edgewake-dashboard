@@ -359,6 +359,12 @@ body {
   letter-spacing: -0.35px;
   line-height: 25px;
 }
+.edge-transcript p.edge-transcript-empty {
+  color: var(--ink-secondary);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+}
 .edge-principles span {
   display: flex;
   min-height: 60px;

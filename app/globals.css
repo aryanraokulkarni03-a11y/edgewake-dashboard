@@ -65,6 +65,8 @@ body {
 .edge-app {
   min-height: 100svh;
   background: var(--surface-page);
+  display: flex;
+  flex-direction: column;
 }
 
 .edge-topbar {
@@ -102,6 +104,12 @@ body {
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 24px;
+}
+.edge-by {
+  color: var(--ink-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 .edge-utility {
   gap: 8px;
@@ -146,7 +154,10 @@ body {
 .edge-canvas {
   width: min(100%, 1064px);
   margin: 0 auto;
-  padding: 46px 48px 44px;
+  padding: 46px 48px 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .edge-intro {
@@ -304,7 +315,7 @@ body {
 .edge-principles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  margin-top: 32px;
+  margin-top: auto;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -388,7 +399,7 @@ body {
     display: none;
   }
   .edge-canvas {
-    padding: 42px 20px 30px;
+    padding: 42px 20px 0;
   }
   .edge-intro h1 {
     font-size: 24px;

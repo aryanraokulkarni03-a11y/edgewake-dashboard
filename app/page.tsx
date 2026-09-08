@@ -10,6 +10,7 @@ export default function Home() {
       <header className="edge-topbar">
         <div className="edge-identity">
           <span className="edge-product-name">EdgeWake</span>
+          <span className="edge-by">by</span>
           <span className="edge-team-name">Team Luna</span>
         </div>
         <div className="edge-utility">

@@ -1,4 +1,5 @@
 import { LockKeyhole, Radio, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
 
 import { LiveCommandStatus } from '@/components/live-command-status';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -15,8 +16,12 @@ export default function Home() {
           </span>
         </div>
         <div className="edge-utility">
-          <span>V2</span>
+          <span className="edge-isro-lockup">
+            <span className="edge-isro-label">ISRO challenge</span>
+            <Image className="edge-isro-logo" src="/isro-logo.png" alt="ISRO logo" width={34} height={34} />
+          </span>
           <i />
+          <span className="edge-version">V2</span>
           <span className="edge-preview-label">Live WebSocket</span>
           <ThemeToggle />
         </div>

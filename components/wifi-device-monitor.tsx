@@ -1,6 +1,6 @@
 'use client';
 
-import { Radio, Wifi } from 'lucide-react';
+import { Laptop, Radio, Wifi } from 'lucide-react';
 import { useEffect, useReducer } from 'react';
 
 import { dashboardSocketUrl } from '@/lib/edgewake-dashboard';
@@ -59,8 +59,8 @@ export function WifiDeviceMonitor() {
         }
       : state.connection === 'connecting'
         ? {
-            detail: 'Connecting to the command hub…',
-            label: 'Preparing device discovery',
+            detail: '',
+            label: 'Looking for EdgeWake on Wi-Fi',
             phase: 'searching',
           }
         : state.streaming
@@ -76,20 +76,19 @@ export function WifiDeviceMonitor() {
                 phase: 'online',
               }
             : {
-                detail: 'Turn on EdgeWake on the same Wi-Fi network.',
-                label: 'Looking for EdgeWake on this Wi-Fi',
+                detail: '',
+                label: 'Looking for EdgeWake on Wi-Fi',
                 phase: 'searching',
               };
 
   return (
     <div className="edge-wifi-layout">
       <div className="edge-wifi-copy">
-        <span className="edge-wifi-eyebrow">DEVICE DISCOVERY</span>
         <p aria-live="polite" className="edge-wifi-state">
           <span className={`edge-device-dot edge-device-${status.phase}`} aria-hidden="true" />
-          {status.label}
+          <span>{status.label}</span>
         </p>
-        <p className="edge-wifi-detail">{status.detail}</p>
+        {status.detail && <p className="edge-wifi-detail">{status.detail}</p>}
         <span className="edge-wifi-network-hint">
           <Wifi strokeWidth={1.7} /> Same network required
         </span>
@@ -105,6 +104,7 @@ export function WifiDeviceMonitor() {
           <Wifi strokeWidth={1.5} />
         </div>
         <div className="edge-network-node edge-network-node-hub">
+          <Laptop strokeWidth={1.6} />
           <span>COMMAND HUB</span>
           <strong>This laptop</strong>
         </div>
